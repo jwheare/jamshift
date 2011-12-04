@@ -1,0 +1,80 @@
+body, html {
+    background: #fff;
+}
+
+a[href^="http:"]::after {
+    margin-left: 0;
+    content: "";
+    opacity: 1;
+}
+
+h1 {
+    border-top: 2px solid #ff0;
+    padding: 12px 119px;
+    box-shadow: 0 2px 6px #959595;
+    color: #fff;
+    background-color: #000;
+    font: normal 17px "FuturaBT-Book", sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#content {
+    padding: 0 119px;
+}
+
+h2 {
+    margin: 36px 0 30px 0;
+    font: lighter 13px "FuturaBT-Book", sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+#addPlaylist {
+    display: none;
+    float: right;
+}
+
+ul#jamList li {
+    width: 100%;
+    float: left;
+    border-top: 1px solid #eee;
+}
+ul#jamList div.jam {
+    padding: 18px 0 3px 274px;
+}
+
+ul#jamList .sp-player {
+    float: left;
+    margin: 0 0 15px -274px;
+}
+
+ul#jamList a.user {
+    font: normal 15px/1.3em "TangerSerifWide-Regular", "Cambria", "Georgia", serif;
+    color: #827B00;
+}
+ul#jamList a.user:hover {
+    color: #635D00;
+}
+
+ul#jamList a.trackLink {
+    margin: 10px 0;
+    font: italic 18px/24px "FuturaBT-BoldItalic", sans-serif;
+}
+ul#jamList a.trackLink span.track {
+    color: #000;
+}
+ul#jamList a.trackLink span.artist {
+    color: #898989;
+}
+
+ul#jamList a.trackLink:hover span {
+    color: #827B00;
+}
+
+ul#jamList a.playcount {
+    padding: 3px 6px 4px 4px;
+    font: normal 11px/24px "FuturaBT-Book", "HelveticaNeue", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
