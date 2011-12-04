@@ -9,19 +9,27 @@
     <link rel="stylesheet" href="sp://import/css/api.css">
     <link rel="stylesheet" href="main.css">
 </head>
-<body>
+<body class="loading">
     <h1>This Was My Jam</h1>
     
+    <img src="arroz.png" id="arroz" width="160" height="85">
+    
     <div id="content">
-        <h2>Jams from this week last year</h2>
-        
         <button id="addPlaylist" class="add-playlist button icon">
             <span class="plus"></span>
             Add as Playlist
         </button>
+        
+        <h2>Jams from this week last year</h2>
+        
         <p id="dateRange"></p>
         
         <ul id="jamList"></ul>
+        
+        <p id="circleHate">
+            <label for="iHateCircles">I hate circles!</label>
+            <input type="checkbox" id="iHateCircles">
+        </p>
     </div>
     
     <script src="jquery-1.7.1.min.js"></script>

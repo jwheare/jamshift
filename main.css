@@ -1,5 +1,10 @@
+@font-face {font-family: 'FuturaBT-Book';src: url('/1385E0_0.eot');src: url('/1385E0_0.eot?#iefix') format('embedded-opentype'),url('/1385E0_0.woff') format('woff'),url('/1385E0_0.ttf') format('truetype'),url('/1385E0_0.svg#wf') format('svg');}
+@font-face {font-family: 'FuturaBT-BoldItalic';src: url('EC84F_3.eot');src: url('EC84F_3.eot?#iefix') format('embedded-opentype'),url('EC84F_3.woff') format('woff'),url('EC84F_3.ttf') format('truetype'),url('EC84F_3.svg#wf') format('svg');}
+ @font-face {font-family: 'TangerSerifWide-Regular';src: url('/1385E0_2.eot');src: url('/1385E0_2.eot?#iefix') format('embedded-opentype'),url('/1385E0_2.woff') format('woff'),url('/1385E0_2.ttf') format('truetype'),url('/1385E0_2.svg#wf') format('svg');}
+
 body, html {
     background: #fff;
+    height: 100%;
 }
 
 a[href^="http:"]::after {
@@ -8,9 +13,15 @@ a[href^="http:"]::after {
     opacity: 1;
 }
 
+body.loading {
+    background-image: url('ajax-loader.gif');
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+}
+
 h1 {
     border-top: 2px solid #ff0;
-    padding: 12px 119px;
+    padding: 13px 119px 10px 119px;
     box-shadow: 0 2px 6px #959595;
     color: #fff;
     background-color: #000;
@@ -19,12 +30,25 @@ h1 {
     text-transform: uppercase;
 }
 
+#arroz {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+body.circleHate #arroz {
+    display: block;
+}
+
 #content {
     padding: 0 119px;
 }
 
+body.loading h2 {
+    display: none;
+}
 h2 {
-    margin: 36px 0 30px 0;
+    margin: 36px 0 8px 0;
     font: lighter 13px "FuturaBT-Book", sans-serif;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -34,7 +58,9 @@ h2 {
     display: none;
     float: right;
 }
-
+ul#jamList {
+    margin-top: 15px;
+}
 ul#jamList li {
     width: 100%;
     float: left;
@@ -68,13 +94,40 @@ ul#jamList a.trackLink span.artist {
     color: #898989;
 }
 
+ul#jamList a.trackLink:hover,
 ul#jamList a.trackLink:hover span {
     color: #827B00;
 }
 
-ul#jamList a.playcount {
+ul#jamList span.playcount {
     padding: 3px 6px 4px 4px;
     font: normal 11px/24px "FuturaBT-Book", "HelveticaNeue", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
     letter-spacing: 1px;
     text-transform: uppercase;
+}
+
+.sp-player {
+    position: relative;
+}
+.arrow {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-image: url('arrow.png');
+    width: 256px;
+    height: 256px;
+}
+
+body.circleHate .arrow {
+    display: block;
+}
+
+#circleHate {
+    display: none;
+    padding: 20px 0;
+}
+
+#iHateCircles {
+    -webkit-appearance: checkbox;
 }

@@ -18,6 +18,11 @@ var Jam = Backbone.Model.extend({
         return Models.Track.fromURI(this.get('spotify'));
     }
 });
+
+$('#iHateCircles').change(function (e) {
+    $('body').toggleClass('circleHate', $(this).attr('checked'));
+});
+
 var User = Backbone.Model.extend();
 var JamList = Backbone.Collection.extend({
     model: Jam,
@@ -58,7 +63,10 @@ var JamView = Backbone.View.extend({
         this.playlist.add(this.model.getTrack());
         this.player.track = this.playlist.get(0);
         this.player.context = this.playlist;
-        container.append($(this.player.node).addClass('sp-image-extra-large'));
+        var player = $(this.player.node);
+        player.addClass('sp-image-extra-large');
+        player.find('.sp-player-button').before('<div class="arrow">');
+        container.append(player);
         
         var user = $('<a class="user">');
         var userModel = this.model.get('user');
@@ -81,7 +89,15 @@ var JamView = Backbone.View.extend({
         
         container.addClass(userModel.get('name').toLowerCase());
         
+        container.hide();
+        
         $(this.el).append(container);
+        
+        $('body').removeClass('loading');
+        
+        container.fadeIn('fast', function () {
+            $('#circleHate').show();
+        });
         
         return this;
     }
