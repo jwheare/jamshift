@@ -452,7 +452,11 @@ function loadJams (user, date) {
             friendJamsNotify();
         }
     }).fail(function (response) {
-        console.warn('getAllFriends error', response.error, response.message);
+        if (response.error) {
+            console.warn('getAllFriends error', response.error, response.message);
+        } else {
+            console.warn('getAllFriends error', response);
+        }
         // Error, notify
         friendJamsNotify();
     });
