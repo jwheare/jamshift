@@ -1,6 +1,6 @@
-@font-face {font-family: 'FuturaBT-Book';src: url('/1385E0_0.eot');src: url('/1385E0_0.eot?#iefix') format('embedded-opentype'),url('/1385E0_0.woff') format('woff'),url('/1385E0_0.ttf') format('truetype'),url('/1385E0_0.svg#wf') format('svg');}
-@font-face {font-family: 'FuturaBT-BoldItalic';src: url('EC84F_3.eot');src: url('EC84F_3.eot?#iefix') format('embedded-opentype'),url('EC84F_3.woff') format('woff'),url('EC84F_3.ttf') format('truetype'),url('EC84F_3.svg#wf') format('svg');}
- @font-face {font-family: 'TangerSerifWide-Regular';src: url('/1385E0_2.eot');src: url('/1385E0_2.eot?#iefix') format('embedded-opentype'),url('/1385E0_2.woff') format('woff'),url('/1385E0_2.ttf') format('truetype'),url('/1385E0_2.svg#wf') format('svg');}
+@font-face {font-family: 'FuturaBT-Book';src: url('/font/1385E0_0.eot');src: url('/font/1385E0_0.eot?#iefix') format('embedded-opentype'),url('/font/1385E0_0.woff') format('woff'),url('/font/1385E0_0.ttf') format('truetype'),url('/font/1385E0_0.svg#wf') format('svg');}
+@font-face {font-family: 'FuturaBT-BoldItalic';src: url('/font/EC84F_3.eot');src: url('/font/EC84F_3.eot?#iefix') format('embedded-opentype'),url('/font/EC84F_3.woff') format('woff'),url('/font/EC84F_3.ttf') format('truetype'),url('/font/EC84F_3.svg#wf') format('svg');}
+ @font-face {font-family: 'TangerSerifWide-Regular';src: url('/font/1385E0_2.eot');src: url('/font/1385E0_2.eot?#iefix') format('embedded-opentype'),url('/font/1385E0_2.woff') format('woff'),url('/font/1385E0_2.ttf') format('truetype'),url('/font/1385E0_2.svg#wf') format('svg');}
 
 body, html {
     background: #fff;
