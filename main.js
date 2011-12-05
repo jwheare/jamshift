@@ -36,6 +36,13 @@ var JamList = Backbone.Collection.extend({
                 this.trigger('curContextChange', this.previousContext, this.context);
             }
         }, this));
+    },
+    getDateRangeString: function () {
+        var first = this.first();
+        var dateRange = first.getFrom().toString('dddd, MMMM d, yyyy') +
+            ' — ' +
+            first.getTo().toString('dddd, MMMM d, yyyy');
+        return dateRange;
     }
 });
 
@@ -102,6 +109,7 @@ var JamView = Backbone.View.extend({
         return this;
     }
 });
+
 var JamListView = Backbone.View.extend({
     el: '#jamList',
     initialize: function (options) {
@@ -139,29 +147,30 @@ var JamListView = Backbone.View.extend({
         });
     },
     renderJam: function (jam) {
-        this.playlist.add(jam.getTrack());
         var view = new JamView({
             model: jam
         });
         $(this.el).append(view.render().el);
         return view;
     },
+    
+    addPlaylist: function () {
+        this.playlist = new Models.Playlist("This Was My Jam: " + this.collection.getDateRangeString());
+        this.collection.each(function (jam) {
+            this.playlist.add(jam.getTrack());
+        }, this);
+    },
+    
     render: function () {
         // Set the date range
-        var first = this.collection.first();
-        var dateRange = first.getFrom().toString('dddd, MMMM d, yyyy') +
-            ' — ' +
-            first.getTo().toString('dddd, MMMM d, yyyy');
-        $('#dateRange').text(dateRange);
-        
-        this.playlist = new Models.Playlist("This Was My Jam: " + dateRange);
+        $('#dateRange').text(this.collection.getDateRangeString());
         
         // Add the jams
         $(this.el).empty();
         this.collection.each(this.renderJam, this);
         
         // Fill in the add playlist button and show it
-        $('#addPlaylist').attr('value', this.playlist.uri).show();
+        $('#addPlaylist').show();
         
         return this;
     }
@@ -174,6 +183,10 @@ JAMSHIFT = {
         date: Date.parse('last year')
     })
 };
+
+$('#addPlaylist').click(function () {
+    JAMSHIFT.listView.addPlaylist();
+});
 
 function getFriends (user, page) {
     page = page || 1;
