@@ -201,6 +201,8 @@ function getFriends (user, page) {
         } else {
             def.resolve(response.friends);
         }
+    }, function (xhr) {
+        def.reject(xhr);
     });
     return def.promise();
 }
@@ -226,8 +228,10 @@ function getAllFriends (user) {
                 pages--;
                 if (pageFriends.error) {
                     console.warn('getFriends page error', i, pageFriends.error, pageFriends.message);
-                } else {
+                } else if (pageFriends.user) {
                     allFriends = allFriends.concat(pageFriends.user);
+                } else {
+                    console.warn('getFriends page xhr error', i, pageFriends);
                 }
                 if (pages == 1) {
                     def.resolve(allFriends);
@@ -269,10 +273,14 @@ function getTopTrackForUserAndDate (user, date) {
                             }
                             def.resolve(jam);
                         }
+                    }, function (xhr) {
+                        def.reject('user.getweeklytrackchart', xhr);
                     });
                 }
             });
         }
+    }, function (xhr) {
+        def.reject('user.getweeklychartlist', xhr);
     });
     return def.promise();
 }
@@ -322,17 +330,21 @@ function populatePlaylinks (jams) {
             track: tracks
         }, function (response) {
             def.notify(response, i, artists, tracks);
+        }, function (response) {
+            def.notify(response, i, artists, tracks);
         });
     });
     
     // Populate and resolve when all chunks are loaded
     def.progress(function (response, i, artists, tracks) {
         --chunkLength;
-        if (!response || response.error) {
+        if (!response || !response.spotify) {
             if (response.error) {
                 console.warn('populatePlaylinks error', i, response.error, response.message);
+            } else if (response) {
+                console.warn('populatePlaylinks empty response', i);
             } else {
-                console.warn('populatePlaylinks error', i);
+                console.warn('populatePlaylinks xhr error', i);
             }
             _.each(_.zip(artists, tracks), function (pair) {
                 console.warn('%s - %s', pair[0], pair[1]);
@@ -402,7 +414,11 @@ function loadJams (user, date) {
             }
             loadDef.resolve();
         }).fail(function (method, response) {
-            console.warn('getTopTrackForUserAndDate error', method, response.error, response.message);
+            if (response.error) {
+                console.warn('getTopTrackForUserAndDate error', method, response.error, response.message);
+            } else {
+                console.warn('getTopTrackForUserAndDate xhr error', method, response);
+            }
             loadDef.reject();
         });
         return loadDef.promise();

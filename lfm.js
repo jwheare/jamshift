@@ -9,7 +9,7 @@ var LFM = (function () {
   var authCallback = null;
 
   // Make an api request
-  var api = function (method, type, params, callback) {
+  var api = function (method, type, params, callback, failure) {
     var data = {
       'api_key': apiKey,
       'method': method
@@ -35,8 +35,12 @@ var LFM = (function () {
     }
     http_request.onreadystatechange = function () {
       var done = 4, ok = 200;
-      if (http_request.readyState === done && http_request.status === ok) {
-        callback(JSON.parse(http_request.responseText));
+      if (http_request.readyState === done) {
+        if (http_request.status === ok) {
+          callback(JSON.parse(http_request.responseText));
+        } else {
+          failure(http_request);
+        }
       }
     };
     http_request.send((m === 'POST') ? data : null);
