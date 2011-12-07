@@ -320,7 +320,10 @@ function populatePlaylinks (jams) {
             if (!userMap[jam.artist]) {
                 userMap[jam.artist] = {};
             }
-            userMap[jam.artist][jam.name] = user;
+            if (!userMap[jam.artist][jam.name]) {
+                userMap[jam.artist][jam.name] = [];
+            }
+            userMap[jam.artist][jam.name].push(user);
             artists.push(jam.artist);
             tracks.push(jam.name);
         });
@@ -352,15 +355,22 @@ function populatePlaylinks (jams) {
         } else {
             // Populate jams object
             _.each($.makeArray(response.spotify.track), function (track) {
-                var trackMap = userMap[track.artist['#text']];
-                if (trackMap) {
-                    var user = trackMap[track.name];
-                    if (user && jams[user]) {
-                        if (track.externalids.spotify) {
-                            jams[user].spotify = track.externalids.spotify;
-                        }
-                    }
+                if (!track.externalids.spotify) {
+                    return;
                 }
+                var trackMap = userMap[track.artist['#text']];
+                if (!trackMap) {
+                    return;
+                }
+                var users = trackMap[track.name];
+                if (!users) {
+                    return;
+                }
+                _.each(users, function (user) {
+                    if (jams[user]) {
+                        jams[user].spotify = track.externalids.spotify;
+                    }
+                });
             });
         }
         if (!chunkLength) {
