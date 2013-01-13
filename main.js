@@ -4,7 +4,7 @@ var Views = sp.require("$api/views");
 var Models = sp.require("$api/models");
 
 LFM.init({
-    key: 'bcb7248fa7b2a020b568960bb4afac18'
+    key: 'a45343ebd38d4aea8e6f334256db9ba0'
 });
 
 var Jam = Backbone.Model.extend({
