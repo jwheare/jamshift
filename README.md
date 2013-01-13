@@ -6,7 +6,7 @@ I'll probably rebrand this and package it better for Spotify at some point. You 
 
 ## Installation
 
-* Clone this project into a local ~/Spotify directory
+* Clone this project into a local `~/Spotify` directory (Mac/Linux) or `My Documents\Spotify` (Windows)
 * Change the 'jwheare' username in main.js to your own Last.fm username (need to add localstorage for the username)
 * Typing `spotify:app:jamshift` into the search field in Spotify
 * Wait for all the data to load (need to add localstorage caching)
