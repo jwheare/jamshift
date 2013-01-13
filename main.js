@@ -159,7 +159,13 @@ var JamListView = Backbone.View.extend({
     },
     
     addPlaylist: function () {
-        this.playlist = new Models.Playlist("This Was My Jam: " + this.collection.getDateRangeString());
+        var text;
+        if (this.justMe) {
+            text = "This Was Your Jam";
+        } else {
+            text = "This Were Your Friends' Jams";
+        }
+        this.playlist = new Models.Playlist(text + ": " + this.collection.getDateRangeString());
         this.collection.each(function (jam) {
             this.playlist.add(jam.getTrack());
         }, this);
