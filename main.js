@@ -141,12 +141,36 @@ var JamListView = Backbone.View.extend({
                 }
             });
             populatePlaylinks(filteredJams).done(function (jams) {
-                jams = _.filter(jams, function (jam) {
-                    return jam.spotify;
+                var def = $.Deferred();
+                var length = _.values(jams).length;
+
+                def.progress(function (jam, user) {
+                    length--;
+                    if (!length) {
+                        def.resolve();
+                    }
                 });
-                self.collection.rangeFrom = rangeFrom;
-                self.collection.rangeTo = rangeTo;
-                self.collection.reset(jams);
+                _.each(jams, function (jam, user) {
+                    if (!jam.spotify) {
+                        searchTrack(jam.artist + ' ' + jam.name).done(function (result) {
+                            if (result && result.data.artists[0].name.indexOf(jam.artist) !== -1) {
+                                jam.spotify = result.data.uri;
+                            } else {
+                                console.log(result.data);
+                            }
+                            def.notify(jam, user);
+                        });
+                    } else {
+                        def.notify(jam, user);
+                    }
+                });
+                def.promise().done(function () {
+                    self.collection.rangeFrom = rangeFrom;
+                    self.collection.rangeTo = rangeTo;
+                    self.collection.reset(_.filter(jams, function (jam) {
+                        return jam.spotify;
+                    }));
+                });
             });
         });
     },
@@ -200,6 +224,23 @@ var JamListView = Backbone.View.extend({
         return this;
     }
 });
+
+function searchTrack (query) {
+    var def = $.Deferred();
+    var search = new Models.Search(query);
+    search.localResults = Models.LOCALSEARCHRESULTS.APPEND;
+    search.pageSize = 1;
+    search.searchAlbums = false;
+    search.searchArtists = false;
+    search.searchPlaylists = false;
+    search.searchTracks = true;
+
+    search.observe(Models.EVENT.CHANGE, function() {
+        def.resolve(search.tracks[0]);
+    });
+    search.appendNext();
+    return def.promise();
+}
 
 USERNAME = 'jwheare';
 
@@ -266,11 +307,6 @@ function getAllFriends (user) {
             // More than one page, this is the first page
             // Get the rest of the pages and notify on each load
             var allFriends = friends.user;
-            _.each(_.range(2, (pages - 0) + 1), function (nextPage, i) {
-                getFriends(user, nextPage).then(function (response) {
-                    def.notify(response, i);
-                });
-            });
             // Resolve when all pages are done
             def.progress(function (pageFriends, i) {
                 pages--;
@@ -284,6 +320,11 @@ function getAllFriends (user) {
                 if (pages == 1) {
                     def.resolve(allFriends);
                 }
+            });
+            _.each(_.range(2, (pages - 0) + 1), function (nextPage, i) {
+                getFriends(user, nextPage).then(function (response) {
+                    def.notify(response, i);
+                });
             });
         }
     }).fail(function (response) {
@@ -351,35 +392,9 @@ function chunkObject(obj, size) {
 function populatePlaylinks (jams) {
     var def = $.Deferred();
     
-    var chunks = chunkObject(jams, 10);
+    var chunks = chunkObject(jams, 1);
     var chunkLength = chunks.length;
-    
     var userMap = {};
-    
-    _.each(chunks, function (chunk, i) {
-        var artists = [];
-        var tracks = [];
-        _.each(chunk, function (jam, user) {
-            if (!userMap[jam.artist]) {
-                userMap[jam.artist] = {};
-            }
-            if (!userMap[jam.artist][jam.name]) {
-                userMap[jam.artist][jam.name] = [];
-            }
-            userMap[jam.artist][jam.name].push(user);
-            artists.push(jam.artist);
-            tracks.push(jam.name);
-        });
-        
-        LFM.get('track.getplaylinks', {
-            artist: artists,
-            track: tracks
-        }, function (response) {
-            def.notify(response, i, artists, tracks);
-        }, function (response) {
-            def.notify(response, i, artists, tracks);
-        });
-    });
     
     // Populate and resolve when all chunks are loaded
     def.progress(function (response, i, artists, tracks) {
@@ -421,6 +436,31 @@ function populatePlaylinks (jams) {
         }
     });
     
+    _.each(chunks, function (chunk, i) {
+        var artists = [];
+        var tracks = [];
+        _.each(chunk, function (jam, user) {
+            if (!userMap[jam.artist]) {
+                userMap[jam.artist] = {};
+            }
+            if (!userMap[jam.artist][jam.name]) {
+                userMap[jam.artist][jam.name] = [];
+            }
+            userMap[jam.artist][jam.name].push(user);
+            artists.push(jam.artist);
+            tracks.push(jam.name);
+        });
+        
+        LFM.get('track.getplaylinks', {
+            artist: artists,
+            track: tracks
+        }, function (response) {
+            def.notify(response, i, artists, tracks);
+        }, function (response) {
+            def.notify(response, i, artists, tracks);
+        });
+    });
+    
     return def.promise();
 }
 
@@ -448,6 +488,14 @@ function loadJams (user, date, justMe) {
     var rangeFrom, rangeTo;
     var userInfo = {};
     
+    
+    // Resolve when everything is loaded
+    def.progress(function () {
+        if (userInfoLoaded && friendJamsLoaded && userJamLoaded) {
+            def.resolve(jams, userInfo, rangeFrom, rangeTo);
+        }
+    });
+
     // Get user info
     getUserInfo(user).then(function (response) {
         if (response.error) {
@@ -524,13 +572,6 @@ function loadJams (user, date, justMe) {
             friendJamsNotify();
         });
     }
-    
-    // Resolve when everything is loaded
-    def.progress(function () {
-        if (userInfoLoaded && friendJamsLoaded && userJamLoaded) {
-            def.resolve(jams, userInfo, rangeFrom, rangeTo);
-        }
-    });
     
     return def.promise();
 }
