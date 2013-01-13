@@ -155,8 +155,6 @@ var JamListView = Backbone.View.extend({
                         searchTrack(jam.artist + ' ' + jam.name).done(function (result) {
                             if (result && result.data.artists[0].name.indexOf(jam.artist) !== -1) {
                                 jam.spotify = result.data.uri;
-                            } else {
-                                console.log(result.data);
                             }
                             def.notify(jam, user);
                         });
