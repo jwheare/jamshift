@@ -9,6 +9,13 @@
     "AppDescription": {
         "en": "What you and your friends were listening to last year"
     },
+    "DefaultTabs": [{
+        "title": { "en": "Just me" },
+        "arguments": "justMe"
+    }, {
+        "title": { "en": "Friends" },
+        "arguments": "friendsToo"
+    }],
     "BundleIdentifier": "jamshift",
     "BundleVersion": "1.0.0",
     "VendorIdentifier": "com.jouire",

@@ -8,12 +8,6 @@ LFM.init({
 });
 
 var Jam = Backbone.Model.extend({
-    getFrom: function () {
-        return new Date(this.get('from'));
-    },
-    getTo: function () {
-        return new Date(this.get('to'));
-    },
     getTrack: function () {
         return Models.Track.fromURI(this.get('spotify'));
     }
@@ -37,11 +31,16 @@ var JamList = Backbone.Collection.extend({
             }
         }, this));
     },
+    getFrom: function () {
+        return new Date(this.rangeFrom);
+    },
+    getTo: function () {
+        return new Date(this.rangeTo);
+    },
     getDateRangeString: function () {
-        var first = this.first();
-        var dateRange = first.getFrom().toString('dddd, MMMM d, yyyy') +
+        var dateRange = this.getFrom().toString('dddd, MMMM d, yyyy') +
             ' — ' +
-            first.getTo().toString('dddd, MMMM d, yyyy');
+            this.getTo().toString('dddd, MMMM d, yyyy');
         return dateRange;
     }
 });
@@ -64,7 +63,7 @@ var JamView = Backbone.View.extend({
             this.player.playing = true;
         }, this);
     },
-    render: function () {
+    render: function (justMe) {
         var container = $('<div class="jam">');
         
         this.playlist.add(this.model.getTrack());
@@ -75,13 +74,14 @@ var JamView = Backbone.View.extend({
         player.find('.sp-player-button').before('<div class="arrow">');
         container.append(player);
         
-        var user = $('<a class="user">');
         var userModel = this.model.get('user');
-        user.attr('href', userModel.get('url'));
-        user.text(userModel.get('name') + '’s jam was…');
-        container.append(user);
-        
-        container.append('<br>');
+        if (!justMe) {
+            var user = $('<a class="user">');
+            user.attr('href', userModel.get('url'));
+            user.text(userModel.get('name') + '’s jam was…');
+            container.append(user);
+            container.append('<br>');
+        }
         
         var trackLink = $('<a class="trackLink">').attr('href', this.model.get('spotify'));
         var track = $('<span class="track">').text(this.model.get('name'));
@@ -96,15 +96,7 @@ var JamView = Backbone.View.extend({
         
         container.addClass(userModel.get('name').toLowerCase());
         
-        container.hide();
-        
         $(this.el).append(container);
-        
-        $('body').removeClass('loading');
-        
-        container.fadeIn('fast', function () {
-            $('#circleHate').show();
-        });
         
         return this;
     }
@@ -113,36 +105,48 @@ var JamView = Backbone.View.extend({
 var JamListView = Backbone.View.extend({
     el: '#jamList',
     initialize: function (options) {
+        $(this.el).hide();
+        $('h2').hide();
+        $('#friendsHeading').hide();
+        $('#addPlaylist').hide();
+        $('#circleHate').hide();
+        $('#dateRange').hide();
+        $('body').addClass('loading');
+        $(this.el).empty();
+
         this.user = options.user;
         this.date = options.date;
+        this.justMe = options.justMe;
         this.collection.bind('reset', this.render, this);
         this.collection.bind('add', this.renderJam, this);
         
         var self = this;
         
-        loadJams(this.user, this.date).done(function (jams, userInfo) {
+        loadJams(this.user, this.date, this.justMe).done(function (jams, userInfo, rangeFrom, rangeTo) {
             var filteredJams = {};
             // Filter low playcounts and merge in user info
             _.each(jams, function (jam, user) {
-                if (jam.playcount > 3) {
+                var username = user;
+                if (self.justMe) {
+                    username = USERNAME;
+                }
+                if (jam && (jam.playcount > 3 || (self.justMe && jam.playcount > 1))) {
                     filteredJams[user] = {
                         id: user,
-                        user: new User(userInfo[user]),
+                        user: new User(userInfo[username]),
                         artist: jam.artist['#text'],
                         name: jam.name,
-                        playcount: jam.playcount,
-                        from: jam.from,
-                        to: jam.to
+                        playcount: jam.playcount
                     };
                 }
             });
             populatePlaylinks(filteredJams).done(function (jams) {
-                for (var user in jams) {
-                    if (!jams[user].spotify) {
-                        delete jams[user];
-                    }
-                }
-                self.collection.reset(_.values(jams));
+                jams = _.filter(jams, function (jam) {
+                    return jam.spotify;
+                });
+                self.collection.rangeFrom = rangeFrom;
+                self.collection.rangeTo = rangeTo;
+                self.collection.reset(jams);
             });
         });
     },
@@ -150,7 +154,7 @@ var JamListView = Backbone.View.extend({
         var view = new JamView({
             model: jam
         });
-        $(this.el).append(view.render().el);
+        $(this.el).append(view.render(this.justMe).el);
         return view;
     },
     
@@ -162,15 +166,30 @@ var JamListView = Backbone.View.extend({
     },
     
     render: function () {
+        if (this.justMe) {
+            $('#justMeHeading').fadeIn('slow');
+        } else {
+            $('#friendsHeading').fadeIn('slow');
+        }
+        $('body').removeClass('loading');
+
         // Set the date range
-        $('#dateRange').text(this.collection.getDateRangeString());
+        if (this.collection.rangeFrom) {
+            $('#dateRange').text(this.collection.getDateRangeString());
+        } else {
+            $('#dateRange').text('');
+        }
+        $('#dateRange').fadeIn('slow');
         
         // Add the jams
-        $(this.el).empty();
         this.collection.each(this.renderJam, this);
         
+        $(this.el).fadeIn('slow', function () {
+            $('#circleHate').show();
+        });
+        
         // Fill in the add playlist button and show it
-        $('#addPlaylist').show();
+        $('#addPlaylist').fadeIn('slow');
         
         return this;
     }
@@ -178,17 +197,38 @@ var JamListView = Backbone.View.extend({
 
 USERNAME = 'jwheare';
 
-JAMSHIFT = {
-    listView: new JamListView({
-        collection: new JamList(),
-        user: USERNAME,
-        date: Date.parse('last year')
-    })
-};
+JAMSHIFT = {};
+
+function chooseTab () {
+    switch (Models.application['arguments'][0]) {
+    case 'justMe':
+        init(true);
+        break;
+    case 'friendsToo':
+        init();
+        break;
+    }
+}
+
+chooseTab();
+
+Models.application.observe(Models.EVENT.ARGUMENTSCHANGED, chooseTab);
 
 $('#addPlaylist').click(function () {
     JAMSHIFT.listView.addPlaylist();
 });
+
+function init (justMe) {
+    if (JAMSHIFT.listView) {
+        JAMSHIFT.listView.collection.reset();
+    }
+    JAMSHIFT.listView = new JamListView({
+        collection: new JamList(),
+        user: USERNAME,
+        date: Date.parse('last year'),
+        justMe: !!justMe
+    });
+}
 
 function getFriends (user, page) {
     page = page || 1;
@@ -246,7 +286,7 @@ function getAllFriends (user) {
     return def.promise();
 }
 
-function getTopTrackForUserAndDate (user, date) {
+function getTopTracksForUserAndDate (user, date) {
     var def = $.Deferred();
     var time = date.getTime();
     LFM.get('user.getweeklychartlist', {
@@ -268,12 +308,7 @@ function getTopTrackForUserAndDate (user, date) {
                             def.reject('user.getweeklytrackchart', chartResponse);
                         } else {
                             var chart = $.makeArray(chartResponse.weeklytrackchart.track);
-                            var jam = chart[0];
-                            if (jam) {
-                                jam.from = from;
-                                jam.to = to;
-                            }
-                            def.resolve(jam);
+                            def.resolve(chart, from, to);
                         }
                     }, function (xhr) {
                         def.reject('user.getweeklytrackchart', xhr);
@@ -352,7 +387,7 @@ function populatePlaylinks (jams) {
                 console.warn('populatePlaylinks xhr error', i);
             }
             _.each(_.zip(artists, tracks), function (pair) {
-                console.warn('%s - %s', pair[0], pair[1]);
+                // console.info('%s - %s', pair[0], pair[1]);
             });
         } else {
             // Populate jams object
@@ -397,13 +432,14 @@ function getUserInfo (user) {
     return def.promise();
 }
 
-function loadJams (user, date) {
+function loadJams (user, date, justMe) {
     var def = $.Deferred();
     var userJamLoaded = false;
     var userInfoLoaded = false;
-    var friendJamsLoaded = false;
+    var friendJamsLoaded = justMe;
     
     var jams = {};
+    var rangeFrom, rangeTo;
     var userInfo = {};
     
     // Get user info
@@ -420,16 +456,24 @@ function loadJams (user, date) {
     
     function loadJam (user, date) {
         var loadDef = $.Deferred();
-        getTopTrackForUserAndDate(user, date).done(function (jam) {
-            if (jam) {
-                jams[user] = jam;
+        getTopTracksForUserAndDate(user, date).done(function (chart, from, to) {
+            rangeFrom = from;
+            rangeTo = to;
+            if (chart) {
+                if (justMe) {
+                    _.each(chart, function (chartItem, i) {
+                        jams[user + i] = chartItem;
+                    });
+                } else {
+                    jams[user] = chart[0];
+                }
             }
             loadDef.resolve();
         }).fail(function (method, response) {
             if (response.error) {
-                console.warn('getTopTrackForUserAndDate error', method, response.error, response.message);
+                console.warn('getTopTracksForUserAndDate error', method, response.error, response.message);
             } else {
-                console.warn('getTopTrackForUserAndDate xhr error', method, response);
+                console.warn('getTopTracksForUserAndDate xhr error', method, response);
             }
             loadDef.reject();
         });
@@ -447,36 +491,38 @@ function loadJams (user, date) {
         friendJamsLoaded = true;
         def.notify();
     }
-    getAllFriends(user).done(function (friends) {
-        var count = friends.length;
-        if (count) {
-            _.each(friends, function (friend) {
-                userInfo[friend.name] = friend;
-                loadJam(friend.name, date).then(function () {
-                    if (!--count) {
-                        // No friends left, notify
-                        friendJamsNotify();
-                    }
+    if (!justMe) {
+        getAllFriends(user).done(function (friends) {
+            var count = friends.length;
+            if (count) {
+                _.each(friends, function (friend) {
+                    userInfo[friend.name] = friend;
+                    loadJam(friend.name, date).then(function () {
+                        if (!--count) {
+                            // No friends left, notify
+                            friendJamsNotify();
+                        }
+                    });
                 });
-            });
-        } else {
-            // No friends, notify
+            } else {
+                // No friends, notify
+                friendJamsNotify();
+            }
+        }).fail(function (response) {
+            if (response.error) {
+                console.warn('getAllFriends error', response.error, response.message);
+            } else {
+                console.warn('getAllFriends error', response);
+            }
+            // Error, notify
             friendJamsNotify();
-        }
-    }).fail(function (response) {
-        if (response.error) {
-            console.warn('getAllFriends error', response.error, response.message);
-        } else {
-            console.warn('getAllFriends error', response);
-        }
-        // Error, notify
-        friendJamsNotify();
-    });
+        });
+    }
     
     // Resolve when everything is loaded
     def.progress(function () {
         if (userInfoLoaded && friendJamsLoaded && userJamLoaded) {
-            def.resolve(jams, userInfo);
+            def.resolve(jams, userInfo, rangeFrom, rangeTo);
         }
     });
     
