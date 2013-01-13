@@ -6,9 +6,18 @@
     "AppName": {
         "en": "This Was My Jam"
     },
+    "AppDescription": {
+        "en": "What you and your friends were listening to last year"
+    },
+    "BundleIdentifier": "jamshift",
+    "BundleVersion": "1.0.0",
+    "VendorIdentifier": "com.jouire",
     "SupportedLanguages": [
         "en"
     ],
+    "Dependencies": {
+        "api": "0.1.0"
+    },
     "RequiredPermissions": [
         "http://*.audioscrobbler.com",
         "http://*.last.fm"

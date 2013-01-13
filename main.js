@@ -1,7 +1,7 @@
-sp = getSpotifyApi(1);
+sp = getSpotifyApi();
 
-var Views = sp.require("sp://import/scripts/api/views");
-var Models = sp.require("sp://import/scripts/api/models");
+var Views = sp.require("$api/views");
+var Models = sp.require("$api/models");
 
 LFM.init({
     key: 'bcb7248fa7b2a020b568960bb4afac18'
@@ -176,10 +176,12 @@ var JamListView = Backbone.View.extend({
     }
 });
 
+USERNAME = 'jwheare';
+
 JAMSHIFT = {
     listView: new JamListView({
         collection: new JamList(),
-        user: 'jwheare',
+        user: USERNAME,
         date: Date.parse('last year')
     })
 };
