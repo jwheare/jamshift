@@ -4,7 +4,7 @@ It's a shameless remixing/theft of the ideas/design behind http://thisismyjam.co
 
 I'll probably rebrand this and package it better for Spotify at some point. You can try it now if you have a Spotify developer account though.
 
-= Installation= 
+## Installation
 
 * Clone this project into a local ~/Spotify directory
 * Change the 'jwheare' username in main.js to your own Last.fm username (need to add localstorage for the username)
